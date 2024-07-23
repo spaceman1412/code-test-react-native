@@ -1,70 +1,249 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React, {
+  ComponentClass,
+  ComponentType,
+  FunctionComponent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import {
+  StyleSheet,
+  View,
+  Text,
+  Button,
+  FlatList,
+  SafeAreaView,
+  Pressable,
+  ScrollView,
+  TextInput,
+  findNodeHandle,
+  TouchableOpacity,
+} from "react-native";
+import Animated, {
+  FadeIn,
+  FadeInLeft,
+  FadeOut,
+  measure,
+  MeasuredDimensions,
+  runOnUI,
+  useAnimatedRef,
+  useSharedValue,
+  withDelay,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
+import CloneWithAbsolutePosition from "./CloneWithAbsolutePosition";
+import { AnimatedComponentRef } from "react-native-reanimated/lib/typescript/createAnimatedComponent/commonTypes";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import CloneTextAbsolute from "./CloneTextAbsolute";
+import Wrapper from "../Wrapper";
+import { createAnimatedComponent } from "react-native-reanimated/lib/typescript/createAnimatedComponent";
+import { StartNodeWrapper, TestWrapper } from "../StartNodeWrapper";
+import { EndNodeWrapper } from "../EndNodeWrapper";
 
 export default function HomeScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <SafeAreaView style={styles.mainContainer}>
+      {/* <View
+        style={{
+          width: "100%",
+          height: 50,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Text style={styles.title}>Todo list</Text>
+      </View> */}
+
+      <View style={{ flex: 1, alignItems: "center", paddingTop: 24 }}>
+        <TodoItem />
+      </View>
+    </SafeAreaView>
   );
 }
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+const TodoItem = () => {
+  const [status, setStatus] = React.useState<"open" | "closed">("closed");
+
+  const measurementValue = useSharedValue<MeasuredDimensions | null>(null);
+  const transformY = useSharedValue(0);
+  const startNodeRef = useRef();
+  const endNodeRef = useRef();
+
+  const onPress = () => {
+    if (status === "closed") {
+      height.value = withTiming(250);
+      setStatus("open");
+      transformY.value = withTiming(17);
+    } else if (status === "open") {
+      height.value = withTiming(150);
+      setStatus("closed");
+      transformY.value = withTiming(0);
+    }
+  };
+
+  useEffect(() => {}, []);
+
+  const height = useSharedValue(150);
+
+  return (
+    <AnimatedPressable
+      style={{
+        width: "80%",
+        height: height,
+        backgroundColor: "white",
+        borderRadius: 20,
+        paddingHorizontal: 16,
+        paddingVertical: 50,
+      }}
+      onPress={onPress}
+    >
+      {/* <Wrapper
+        StartNode={ClosedContent}
+        EndNode={OpenContent}
+        isEnabled={status === "open" ? true : false}
+      /> */}
+      <ClosedContentTest status={status} />
+    </AnimatedPressable>
+  );
+};
+
+const OpenContent = React.forwardRef(
+  ({ measurementValue, transformY, style }: any, ref: any) => (
+    <Animated.View style={[{ flex: 1 }, style]}>
+      <View style={{ width: "100%", alignItems: "flex-end" }}>
+        <Text>Xoa</Text>
+      </View>
+
+      <View style={{ height: 20 }} />
+
+      <Text style={{ fontSize: 16, fontWeight: "bold" }} onLayout={(e) => {}}>
+        Task 1
+      </Text>
+      <View style={{ height: 20 }} />
+
+      <Text style={{ fontSize: 16, fontWeight: "bold" }} onLayout={(e) => {}}>
+        Task 1
+      </Text>
+      <Button title="Xong" />
+    </Animated.View>
+  )
+);
+
+const ClosedContentTest = ({ status }) => {
+  const [startNode, setStartNode] = useState<any>();
+  const [endNode, setEndNode] = useState<any>();
+
+  if (startNode) {
+    // console.log(startNode.layout);
+  }
+
+  return (
+    <>
+      <Animated.View style={[{ flexDirection: "row", flex: 1 }]}>
+        <View
+          style={{
+            width: 20,
+            height: 20,
+            backgroundColor: "gray",
+            borderRadius: 5,
+          }}
+        />
+        <View style={{ marginStart: 16 }}>
+          {/* //TODO: Create a wrapper component for the user more convenient */}
+          <StartNodeWrapper
+            onNode={(node) => setStartNode(node)}
+            endNode={endNode}
+            isStart={status === "open" ? true : false}
+          >
+            <TouchableOpacity onPress={() => console.log("start node")}>
+              <Text style={{ fontSize: 16, fontWeight: "bold" }}>Task 1</Text>
+            </TouchableOpacity>
+          </StartNodeWrapper>
+
+          <EndNodeWrapper
+            onNode={(node) => setEndNode(node)}
+            isStart={status === "open" ? true : false}
+          >
+            <TouchableOpacity onPress={() => console.log("end node")}>
+              <Text style={{ fontSize: 16, fontWeight: "bold" }}>Task 1</Text>
+            </TouchableOpacity>
+          </EndNodeWrapper>
+          <Text style={{ color: "green", marginTop: 16 }}>Uu tien cao</Text>
+        </View>
+      </Animated.View>
+
+      {/* {startNode && (
+        <View
+          style={[
+            { backgroundColor: "black", width: 10, height: 10 },
+            StyleSheet.absoluteFill,
+            { left: startNode.layout.x, top: startNode.layout.y },
+          ]}
+        />
+      )} */}
+    </>
+  );
+};
+
+function nodeFromRef(ref: any, isParent?: boolean, parentInstance?: any): any {
+  const nodeHandle = ref ? findNodeHandle(ref) : undefined;
+  console.log("aaa", nodeHandle);
+
+  return nodeHandle
+    ? {
+        ref,
+        nodeHandle,
+        isParent: isParent || false,
+        parentInstance,
+      }
+    : null;
+}
+
+const ClosedContent = React.forwardRef(
+  ({ measurementValue, transformY, innerRef, style }: any, ref: any) => {
+    let startNode;
+
+    return (
+      <Animated.View
+        style={[{ flexDirection: "row", flex: 1 }, style]}
+        ref={ref}
+      >
+        <View
+          style={{
+            width: 20,
+            height: 20,
+            backgroundColor: "gray",
+            borderRadius: 5,
+          }}
+        />
+        <View style={{ marginStart: 16 }}>
+          {/* //TODO: Create a wrapper component for the user more convenient */}
+          <TestWrapper onNode={startNode}>
+            <Text
+              style={{ fontSize: 16, fontWeight: "bold" }}
+              ref={(ref) => nodeFromRef(ref)}
+            >
+              Task 1
+            </Text>
+          </TestWrapper>
+          <Text style={{ color: "green", marginTop: 16 }}>Uu tien cao</Text>
+        </View>
+      </Animated.View>
+    );
+  }
+);
+
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  mainContainer: {
+    flex: 1,
+    backgroundColor: "yellow",
+    paddingHorizontal: 20,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  title: {
+    fontSize: 30,
+    color: "white",
   },
 });
