@@ -40,6 +40,8 @@ import Wrapper from "../Wrapper";
 import { createAnimatedComponent } from "react-native-reanimated/lib/typescript/createAnimatedComponent";
 import { StartNodeWrapper, TestWrapper } from "../StartNodeWrapper";
 import { EndNodeWrapper } from "../EndNodeWrapper";
+import { TestNodeWrapper } from "../TestNode";
+import { LayoutWrapper } from "../LayoutWrapper";
 
 export default function HomeScreen() {
   return (
@@ -69,8 +71,10 @@ const TodoItem = () => {
 
   const measurementValue = useSharedValue<MeasuredDimensions | null>(null);
   const transformY = useSharedValue(0);
-  const startNodeRef = useRef();
-  const endNodeRef = useRef();
+  const [startNode, setStartNode] = useState<any>();
+  const [endNode, setEndNode] = useState<any>();
+
+  const isEnabled = status === "open" ? true : false;
 
   const onPress = () => {
     if (status === "closed") {
@@ -100,28 +104,40 @@ const TodoItem = () => {
       }}
       onPress={onPress}
     >
-      {/* <Wrapper
-        StartNode={ClosedContent}
-        EndNode={OpenContent}
-        isEnabled={status === "open" ? true : false}
-      /> */}
-      <ClosedContentTest status={status} />
+      <LayoutWrapper
+        startNode={startNode}
+        endNode={endNode}
+        isEnabled={isEnabled}
+      >
+        {isEnabled ? (
+          <OpenContent
+            onNode={(node) => {
+              setEndNode(node);
+            }}
+          />
+        ) : (
+          <ClosedContent
+            onNode={(node) => {
+              setStartNode(node);
+            }}
+          />
+        )}
+      </LayoutWrapper>
     </AnimatedPressable>
   );
 };
 
-const OpenContent = React.forwardRef(
-  ({ measurementValue, transformY, style }: any, ref: any) => (
-    <Animated.View style={[{ flex: 1 }, style]}>
+const OpenContent = ({ onNode }: any) => {
+  return (
+    <Animated.View style={{ flex: 1 }}>
       <View style={{ width: "100%", alignItems: "flex-end" }}>
         <Text>Xoa</Text>
       </View>
 
       <View style={{ height: 20 }} />
-
-      <Text style={{ fontSize: 16, fontWeight: "bold" }} onLayout={(e) => {}}>
-        Task 1
-      </Text>
+      <TestNodeWrapper onNode={onNode}>
+        <Text style={{ fontSize: 16, fontWeight: "bold" }}>Task 1</Text>
+      </TestNodeWrapper>
       <View style={{ height: 20 }} />
 
       <Text style={{ fontSize: 16, fontWeight: "bold" }} onLayout={(e) => {}}>
@@ -129,8 +145,8 @@ const OpenContent = React.forwardRef(
       </Text>
       <Button title="Xong" />
     </Animated.View>
-  )
-);
+  );
+};
 
 const ClosedContentTest = ({ status }) => {
   const [startNode, setStartNode] = useState<any>();
@@ -188,53 +204,28 @@ const ClosedContentTest = ({ status }) => {
   );
 };
 
-function nodeFromRef(ref: any, isParent?: boolean, parentInstance?: any): any {
-  const nodeHandle = ref ? findNodeHandle(ref) : undefined;
-  console.log("aaa", nodeHandle);
+const ClosedContent = ({ onNode }) => {
+  return (
+    <Animated.View style={[{ flexDirection: "row", flex: 1 }]}>
+      <View
+        style={{
+          width: 20,
+          height: 20,
+          backgroundColor: "gray",
+          borderRadius: 5,
+        }}
+      />
+      <View style={{ marginStart: 16 }}>
+        {/* //TODO: Create a wrapper component for the user more convenient */}
 
-  return nodeHandle
-    ? {
-        ref,
-        nodeHandle,
-        isParent: isParent || false,
-        parentInstance,
-      }
-    : null;
-}
-
-const ClosedContent = React.forwardRef(
-  ({ measurementValue, transformY, innerRef, style }: any, ref: any) => {
-    let startNode;
-
-    return (
-      <Animated.View
-        style={[{ flexDirection: "row", flex: 1 }, style]}
-        ref={ref}
-      >
-        <View
-          style={{
-            width: 20,
-            height: 20,
-            backgroundColor: "gray",
-            borderRadius: 5,
-          }}
-        />
-        <View style={{ marginStart: 16 }}>
-          {/* //TODO: Create a wrapper component for the user more convenient */}
-          <TestWrapper onNode={startNode}>
-            <Text
-              style={{ fontSize: 16, fontWeight: "bold" }}
-              ref={(ref) => nodeFromRef(ref)}
-            >
-              Task 1
-            </Text>
-          </TestWrapper>
-          <Text style={{ color: "green", marginTop: 16 }}>Uu tien cao</Text>
-        </View>
-      </Animated.View>
-    );
-  }
-);
+        <TestNodeWrapper onNode={onNode}>
+          <Text style={{ fontSize: 16, fontWeight: "bold" }}>Start</Text>
+        </TestNodeWrapper>
+        <Text style={{ color: "green", marginTop: 16 }}>Uu tien cao</Text>
+      </View>
+    </Animated.View>
+  );
+};
 
 const styles = StyleSheet.create({
   mainContainer: {
