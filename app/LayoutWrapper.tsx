@@ -5,7 +5,13 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Animated, findNodeHandle, View } from "react-native";
+import { findNodeHandle, View } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useDerivedValue,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 
 export const LayoutWrapper = ({
   startNode,
@@ -18,28 +24,25 @@ export const LayoutWrapper = ({
   });
   const ref = useRef<any>();
   const [startNodeLayout, setStartNodeLayout] = useState<any>();
-  const [nodeLayout, setNodeLayout] = useState<any>();
 
   const [endNodeLayout, setEndNodeLayout] = useState<any>();
 
-  // const translateCoordinate = useSharedValue<any>(startNodeLayout);
-  let startNodeCoor;
-  let endNodeCoor;
-
-  // console.log("layout", endNode);
-
-  const animatedStyle = nodeLayout
-    ? {
-        transform: [
-          {
-            translateY: nodeLayout.y,
-          },
-          {
-            translateX: nodeLayout.x,
-          },
-        ],
-      }
-    : null;
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateY:
+          isEnabled && endNodeLayout
+            ? withTiming(endNodeLayout.y - startNodeLayout.y)
+            : withTiming(0),
+      },
+      {
+        translateX:
+          isEnabled && endNodeLayout
+            ? withTiming(endNodeLayout.x - startNodeLayout.x)
+            : withTiming(0),
+      },
+    ],
+  }));
 
   useEffect(() => {
     if (ref && startNode) {
@@ -47,8 +50,6 @@ export const LayoutWrapper = ({
         startNode.ref?.current?.measureLayout(
           findNodeHandle(ref.current),
           (x, y, width, height) => {
-            console.log("got measurement startnode", x, y, width, height);
-
             setStartNodeLayout({ x, y });
           },
           () => {
@@ -63,12 +64,7 @@ export const LayoutWrapper = ({
         endNode.ref?.current?.measureLayout(
           findNodeHandle(ref.current),
           (x, y, width, height) => {
-            console.log("got measurement endnode", x, y, width, height);
             setEndNodeLayout({ x, y });
-            // runOnUI(() => {
-            //   translateCoordinate.value = { x, y };
-            // })();
-            // endNodeCoor = { x: x, y: y, width: width, height: height };
           },
           () => {
             console.log("measureLayout error");
@@ -86,16 +82,10 @@ export const LayoutWrapper = ({
           style={[
             {
               position: "absolute",
-              top:
-                isEnabled && endNodeLayout
-                  ? endNodeLayout.y
-                  : startNodeLayout.y,
-              left:
-                isEnabled && endNodeLayout
-                  ? endNodeLayout.x
-                  : startNodeLayout.x,
+              top: startNodeLayout.y,
+              left: startNodeLayout.x,
             },
-            // animatedStyle,
+            animatedStyle,
           ]}
         >
           {startNode.element}
