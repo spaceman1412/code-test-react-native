@@ -42,5 +42,9 @@ export const TestNodeWrapper = ({ onNode, children }) => {
     }
   }, [ref]);
 
-  return <View ref={ref}>{children}</View>;
+  return (
+    <View ref={ref} style={{ opacity: 0 }}>
+      {children}
+    </View>
+  );
 };

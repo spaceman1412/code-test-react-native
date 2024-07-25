@@ -57,9 +57,33 @@ export default function HomeScreen() {
         <Text style={styles.title}>Todo list</Text>
       </View> */}
 
-      <View style={{ flex: 1, alignItems: "center", paddingTop: 24 }}>
+      {/* <View style={{ flex: 1, alignItems: "center", paddingTop: 24 }}> */}
+      <ScrollView
+        style={{}}
+        contentContainerStyle={{
+          backgroundColor: "black",
+          flexGrow: 1,
+          alignItems: "center",
+          paddingTop: 24,
+        }}
+      >
         <TodoItem />
-      </View>
+        <View style={{ height: 10 }} />
+        <TodoItem />
+        <View style={{ height: 10 }} />
+
+        <TodoItem />
+        <View style={{ height: 10 }} />
+
+        <TodoItem />
+        <View style={{ height: 10 }} />
+
+        <TodoItem />
+        <View style={{ height: 10 }} />
+
+        <TodoItem />
+      </ScrollView>
+      {/* </View> */}
     </SafeAreaView>
   );
 }
@@ -108,21 +132,21 @@ const TodoItem = () => {
         startNode={startNode}
         endNode={endNode}
         isEnabled={isEnabled}
-      >
-        {isEnabled ? (
-          <OpenContent
-            onNode={(node) => {
-              setEndNode(node);
-            }}
-          />
-        ) : (
+        startNodeContainer={
           <ClosedContent
             onNode={(node) => {
               setStartNode(node);
             }}
           />
-        )}
-      </LayoutWrapper>
+        }
+        endNodeContainer={
+          <OpenContent
+            onNode={(node) => {
+              setEndNode(node);
+            }}
+          />
+        }
+      ></LayoutWrapper>
     </AnimatedPressable>
   );
 };
@@ -219,7 +243,7 @@ const ClosedContent = ({ onNode }) => {
         {/* //TODO: Create a wrapper component for the user more convenient */}
 
         <TestNodeWrapper onNode={onNode}>
-          <Text style={{ fontSize: 16, fontWeight: "bold" }}>Start</Text>
+          <Text style={{ fontSize: 16, fontWeight: "bold" }}>Task 1</Text>
         </TestNodeWrapper>
         <Text style={{ color: "green", marginTop: 16 }}>Uu tien cao</Text>
       </View>
