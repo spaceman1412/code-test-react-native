@@ -61,7 +61,6 @@ export default function HomeScreen() {
       <ScrollView
         style={{}}
         contentContainerStyle={{
-          backgroundColor: "black",
           flexGrow: 1,
           alignItems: "center",
           paddingTop: 24,
@@ -146,7 +145,7 @@ const TodoItem = () => {
             }}
           />
         }
-      ></LayoutWrapper>
+      />
     </AnimatedPressable>
   );
 };

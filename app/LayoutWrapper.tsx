@@ -17,6 +17,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
+// Check for first mount
 export const useIsMount = () => {
   const isMountRef = useRef(true);
   useEffect(() => {
@@ -41,10 +42,6 @@ export const LayoutWrapper = ({
   const [startNodeLayout, setStartNodeLayout] = useState<any>();
 
   const [endNodeLayout, setEndNodeLayout] = useState<any>();
-  const [onAnimation, setOnAnimation] = useState(false);
-  const [currentNode, setCurrentNode] = useState<"start" | "end">("start");
-
-  const isMount = useIsMount();
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -64,46 +61,37 @@ export const LayoutWrapper = ({
   }));
 
   useEffect(() => {
-    if (isMount) {
-      return;
-    } else {
-      setOnAnimation(true);
-    }
-  }, [isEnabled]);
+    if (ref) {
+      // Measure layout of startNode and endNode
+      if (startNode) {
+        setTimeout(() => {
+          startNode.ref?.current?.measureLayout(
+            findNodeHandle(ref.current),
+            (x, y, width, height) => {
+              setStartNodeLayout({ x, y });
+            },
+            () => {
+              console.log("measureLayout error");
+            }
+          );
+        }, 0);
+      }
 
-  useEffect(() => {
-    if (ref && startNode) {
-      setTimeout(() => {
-        startNode.ref?.current?.measureLayout(
-          findNodeHandle(ref.current),
-          (x, y, width, height) => {
-            setStartNodeLayout({ x, y });
-          },
-          () => {
-            console.log("measureLayout error");
-          }
-        );
-      }, 0);
-    }
-
-    if (ref && endNode) {
-      setTimeout(() => {
-        endNode.ref?.current?.measureLayout(
-          findNodeHandle(ref.current),
-          (x, y, width, height) => {
-            setEndNodeLayout({ x, y });
-          },
-          () => {
-            console.log("measureLayout error");
-          }
-        );
-      }, 0);
+      if (endNode) {
+        setTimeout(() => {
+          endNode.ref?.current?.measureLayout(
+            findNodeHandle(ref.current),
+            (x, y, width, height) => {
+              setEndNodeLayout({ x, y });
+            },
+            () => {
+              console.log("measureLayout error");
+            }
+          );
+        }, 0);
+      }
     }
   }, [startNode, ref, endNode]);
-
-  const updateOnAnimation = () => {
-    setOnAnimation(false);
-  };
 
   const animatedStyleStartNode = useAnimatedStyle(
     () => ({
@@ -131,7 +119,6 @@ export const LayoutWrapper = ({
           animatedStyleStartNode,
           {
             position: "absolute",
-
             width: "100%",
           },
         ]}
@@ -157,21 +144,8 @@ export const LayoutWrapper = ({
     []
   );
 
-  useEffect(() => {
-    if (isEnabled) {
-      console.log("called");
-      setTimeout(() => setCurrentNode("end"), 500);
-    } else if (!isEnabled) {
-      setTimeout(() => setCurrentNode("start"), 500);
-    }
-  }, [isEnabled]);
-
-  console.log("onAnimation", onAnimation);
-
   return (
     <View ref={ref} style={{ flex: 1 }}>
-      {/* {currentNode === "start" ? <StartNodeComponent /> : <EndNodeComponent />} */}
-      {/* {!isEnabled ? <StartNodeComponent /> : <EndNodeComponent />} */}
       <StartNodeComponent />
       <EndNodeComponent />
 
