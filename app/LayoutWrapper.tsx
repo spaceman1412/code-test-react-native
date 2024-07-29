@@ -7,13 +7,24 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { findNodeHandle, View, Image } from "react-native";
+import {
+  findNodeHandle,
+  View,
+  Image,
+  ViewProps,
+  TouchableOpacity,
+  Button,
+  InteractionManager,
+} from "react-native";
 import Animated, {
+  interpolateColor,
   runOnJS,
   useAnimatedStyle,
   useDerivedValue,
+  useFrameCallback,
   useSharedValue,
   withSequence,
+  withSpring,
   withTiming,
 } from "react-native-reanimated";
 import { createAnimatedComponent } from "react-native-reanimated/lib/typescript/createAnimatedComponent";
@@ -44,6 +55,8 @@ export const LayoutWrapper = ({
 
   const [endNodeLayout, setEndNodeLayout] = useState<any>();
 
+  const color = interpolateColor(isEnabled, [0, 1], ["black", "red"]);
+
   // Animated base on position of startNode and endNode
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -69,7 +82,12 @@ export const LayoutWrapper = ({
       isEnabled && endNodeLayout
         ? withTiming(endNodeLayout.height, { duration: 500 })
         : withTiming(startNodeLayout?.height, { duration: 500 }),
+    backgroundColor: withTiming(color, { duration: 500 }),
   }));
+
+  if (startNode) {
+    console.log(startNode.element.props);
+  }
 
   useEffect(() => {
     if (ref) {
@@ -122,6 +140,21 @@ export const LayoutWrapper = ({
     [isEnabled]
   );
 
+  const TestNodeR = React.forwardRef(
+    (props: ViewProps, ref: React.LegacyRef<View>) => {
+      const startNodeWithRef =
+        startNode &&
+        cloneElement(startNode.element, {
+          ref: ref,
+          style: [startNode.element.props.style, props.style],
+        });
+
+      return startNodeWithRef;
+    }
+  );
+
+  const TestNodeAnimated = Animated.createAnimatedComponent(TestNodeR);
+
   const StartNodeComponent = useCallback(
     () => (
       <Animated.View
@@ -154,14 +187,21 @@ export const LayoutWrapper = ({
     ),
     []
   );
+  // const handlePress = () => {
+  //   width.value = withSpring(width.value + 50);
+  // };
+
+  endNodeLayout && console.log("endnodelayout", endNodeLayout);
 
   return (
     <View ref={ref} style={{ flex: 1 }}>
       <StartNodeComponent />
       <EndNodeComponent />
 
+      {/* {isEnabled ? endNodeContainer : startNodeContainer} */}
+
       {startNodeLayout && (
-        <Animated.View
+        <TestNodeAnimated
           style={[
             {
               position: "absolute",
@@ -171,10 +211,10 @@ export const LayoutWrapper = ({
             },
             animatedStyle,
           ]}
-        >
-          {isEnabled && endNode ? endNode.element : startNode.element}
-        </Animated.View>
+        />
       )}
+
+      {/* <Button onPress={handlePress} title="Click me" /> */}
     </View>
   );
 };

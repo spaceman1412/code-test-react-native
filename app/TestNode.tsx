@@ -41,9 +41,15 @@ export const TestNodeWrapper = ({ onNode, children }) => {
     }
   }, [ref]);
 
+  const ChildrenHiddenWithRef = cloneElement(element, {
+    ref: ref,
+    style: [{ opacity: 0 }, element.props.style],
+  });
+
   return (
-    <View ref={ref} style={{ opacity: 0 }}>
-      {children}
-    </View>
+    // <View ref={ref} style={{ opacity: 0 }}>
+    //   {children}
+    // </View>
+    <>{ChildrenHiddenWithRef}</>
   );
 };
