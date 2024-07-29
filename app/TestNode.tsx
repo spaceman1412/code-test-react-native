@@ -19,7 +19,6 @@ import Animated, {
 
 export const TestNodeWrapper = ({ onNode, children }) => {
   const element = Children.only(children);
-  const [layout, setLayout] = useState<any>();
   const ref = useRef<any>();
   // const [delayIsStart, setDelayIsStart] = useState(isStart);
 

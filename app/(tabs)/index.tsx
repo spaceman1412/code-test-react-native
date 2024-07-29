@@ -18,6 +18,7 @@ import {
   TextInput,
   findNodeHandle,
   TouchableOpacity,
+  Image,
 } from "react-native";
 import Animated, {
   FadeIn,
@@ -159,7 +160,16 @@ const OpenContent = ({ onNode }: any) => {
 
       <View style={{ height: 20 }} />
       <TestNodeWrapper onNode={onNode}>
-        <Text style={{ fontSize: 16, fontWeight: "bold" }}>Task 1</Text>
+        {/* <Text
+          style={{ fontSize: 16, fontWeight: "bold", color: "black" }}
+          onLayout={(e) => {}}
+        >
+          Task 1
+        </Text> */}
+        <Image
+          source={{ uri: "https://reactnative.dev/img/tiny_logo.png" }}
+          style={{ width: 100, height: 100, resizeMode: "stretch" }}
+        />
       </TestNodeWrapper>
       <View style={{ height: 20 }} />
 
@@ -242,7 +252,14 @@ const ClosedContent = ({ onNode }) => {
         {/* //TODO: Create a wrapper component for the user more convenient */}
 
         <TestNodeWrapper onNode={onNode}>
-          <Text style={{ fontSize: 16, fontWeight: "bold" }}>Task 1</Text>
+          {/* <Text style={{ fontSize: 16, fontWeight: "bold", color: "black" }}>
+            Task 1
+          </Text> */}
+
+          <Image
+            source={{ uri: "https://reactnative.dev/img/tiny_logo.png" }}
+            style={{ width: 100, height: 50, resizeMode: "stretch" }}
+          />
         </TestNodeWrapper>
         <Text style={{ color: "green", marginTop: 16 }}>Uu tien cao</Text>
       </View>

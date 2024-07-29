@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { findNodeHandle, View } from "react-native";
+import { findNodeHandle, View, Image } from "react-native";
 import Animated, {
   runOnJS,
   useAnimatedStyle,
@@ -16,6 +16,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from "react-native-reanimated";
+import { createAnimatedComponent } from "react-native-reanimated/lib/typescript/createAnimatedComponent";
 
 // Check for first mount
 export const useIsMount = () => {
@@ -43,21 +44,31 @@ export const LayoutWrapper = ({
 
   const [endNodeLayout, setEndNodeLayout] = useState<any>();
 
+  // Animated base on position of startNode and endNode
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
       {
         translateY:
           isEnabled && endNodeLayout
-            ? withTiming(endNodeLayout.y - startNodeLayout.y)
-            : withTiming(0),
+            ? withTiming(endNodeLayout.y - startNodeLayout.y, { duration: 500 })
+            : withTiming(0, { duration: 500 }),
       },
       {
         translateX:
           isEnabled && endNodeLayout
-            ? withTiming(endNodeLayout.x - startNodeLayout.x)
-            : withTiming(0),
+            ? withTiming(endNodeLayout.x - startNodeLayout.x, { duration: 500 })
+            : withTiming(0, { duration: 500 }),
       },
     ],
+
+    width:
+      isEnabled && endNodeLayout
+        ? withTiming(endNodeLayout.width, { duration: 500 })
+        : withTiming(startNodeLayout?.width, { duration: 500 }),
+    height:
+      isEnabled && endNodeLayout
+        ? withTiming(endNodeLayout.height, { duration: 500 })
+        : withTiming(startNodeLayout?.height, { duration: 500 }),
   }));
 
   useEffect(() => {
@@ -68,7 +79,7 @@ export const LayoutWrapper = ({
           startNode.ref?.current?.measureLayout(
             findNodeHandle(ref.current),
             (x, y, width, height) => {
-              setStartNodeLayout({ x, y });
+              setStartNodeLayout({ x, y, width, height });
             },
             () => {
               console.log("measureLayout error");
@@ -82,7 +93,7 @@ export const LayoutWrapper = ({
           endNode.ref?.current?.measureLayout(
             findNodeHandle(ref.current),
             (x, y, width, height) => {
-              setEndNodeLayout({ x, y });
+              setEndNodeLayout({ x, y, width, height });
             },
             () => {
               console.log("measureLayout error");
@@ -156,6 +167,7 @@ export const LayoutWrapper = ({
               position: "absolute",
               top: startNodeLayout.y,
               left: startNodeLayout.x,
+              overflow: "hidden",
             },
             animatedStyle,
           ]}
