@@ -166,9 +166,17 @@ const OpenContent = ({ onNode }: any) => {
         >
           Task 1
         </Text> */}
-        <Image
+        {/* <Image
           source={{ uri: "https://reactnative.dev/img/tiny_logo.png" }}
           style={{ width: 100, height: 100, resizeMode: "stretch" }}
+        /> */}
+        <View
+          style={{
+            width: 50,
+            height: 100,
+            backgroundColor: "pink",
+            transform: [{ rotateX: "10deg" }, { translateX: 30 }],
+          }}
         />
       </TestNodeWrapper>
       <View style={{ height: 20 }} />
@@ -256,9 +264,25 @@ const ClosedContent = ({ onNode }) => {
             Task 1
           </Text> */}
 
-          <Image
+          {/* <Image
             source={{ uri: "https://reactnative.dev/img/tiny_logo.png" }}
             style={{ width: 100, height: 50, resizeMode: "stretch" }}
+          /> */}
+
+          <View
+            style={[
+              {
+                width: 50,
+                height: 50,
+                backgroundColor: "black",
+                transform: [{ translateX: 45 }, { rotateX: "100deg" }],
+              },
+            ]}
+            // style={{
+            //   width: 50,
+            //   height: 50,
+            //   backgroundColor: "red",
+            // }}
           />
         </TestNodeWrapper>
         <Text style={{ color: "green", marginTop: 16 }}>Uu tien cao</Text>

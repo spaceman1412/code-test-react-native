@@ -1,33 +1,16 @@
 import React, {
-  Children,
   cloneElement,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
-import {
-  findNodeHandle,
-  View,
-  Image,
-  ViewProps,
-  TouchableOpacity,
-  Button,
-  InteractionManager,
-} from "react-native";
+import { findNodeHandle, View, ViewProps, ViewStyle } from "react-native";
 import Animated, {
   interpolateColor,
-  runOnJS,
   useAnimatedStyle,
-  useDerivedValue,
-  useFrameCallback,
-  useSharedValue,
-  withSequence,
-  withSpring,
   withTiming,
 } from "react-native-reanimated";
-import { createAnimatedComponent } from "react-native-reanimated/lib/typescript/createAnimatedComponent";
 
 // Check for first mount
 export const useIsMount = () => {
@@ -36,6 +19,25 @@ export const useIsMount = () => {
     isMountRef.current = false;
   }, []);
   return isMountRef.current;
+};
+
+type NodeTransform = {
+  transform?: any;
+  backgroundColor?: string;
+};
+
+const getTransformWithKey = (transformMatrix, key) => {
+  let value = null;
+
+  if (transformMatrix) {
+    transformMatrix?.forEach((element) => {
+      if (element[key]) {
+        value = element[key];
+      }
+    });
+
+    return value;
+  } else return null;
 };
 
 export const LayoutWrapper = ({
@@ -55,39 +57,229 @@ export const LayoutWrapper = ({
 
   const [endNodeLayout, setEndNodeLayout] = useState<any>();
 
-  const color = interpolateColor(isEnabled, [0, 1], ["black", "red"]);
+  const [startNodeTransform, setStartNodeTransform] = useState<NodeTransform>();
+  const [endNodeTransform, setEndNodeTransform] = useState<NodeTransform>();
+
+  const translateXStartNode = getTransformWithKey(
+    startNodeTransform?.transform,
+    "translateX"
+  );
+  const translateYStartNode = getTransformWithKey(
+    startNodeTransform?.transform,
+    "translateY"
+  );
+
+  const translateXEndNode = getTransformWithKey(
+    endNodeTransform?.transform,
+    "translateX"
+  );
+  const translateYEndNode = getTransformWithKey(
+    endNodeTransform?.transform,
+    "translateY"
+  );
+
+  const color = (() => {
+    if (
+      startNodeTransform?.backgroundColor &&
+      endNodeTransform?.backgroundColor
+    ) {
+      return interpolateColor(
+        isEnabled,
+        [0, 1],
+        [startNodeTransform.backgroundColor, endNodeTransform.backgroundColor]
+      );
+    } else return null;
+  })();
+
+  const nodeDefaultStyle = (() => {
+    let startValue: any[] = [];
+    let endValue: any[] = [];
+    if (startNodeTransform) {
+      startNodeTransform?.transform.forEach((startNode) => {
+        const keyStart = Object.keys(startNode)[0];
+        if (keyStart !== "translateX" && keyStart !== "translateY") {
+          startValue.push({
+            [keyStart]: startNode[keyStart],
+          });
+        }
+      });
+    }
+
+    if (endNodeTransform) {
+      endNodeTransform?.transform.forEach((endNode) => {
+        const keyEnd = Object.keys(endNode)[0];
+        if (keyEnd !== "translateX" && keyEnd !== "translateY") {
+          endValue.push({
+            [keyEnd]: endNode[keyEnd],
+          });
+        }
+      });
+    }
+
+    return {
+      start: startValue,
+      end: endValue,
+    };
+  })();
 
   // Animated base on position of startNode and endNode
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateY:
-          isEnabled && endNodeLayout
-            ? withTiming(endNodeLayout.y - startNodeLayout.y, { duration: 500 })
-            : withTiming(0, { duration: 500 }),
-      },
-      {
-        translateX:
-          isEnabled && endNodeLayout
-            ? withTiming(endNodeLayout.x - startNodeLayout.x, { duration: 500 })
-            : withTiming(0, { duration: 500 }),
-      },
-    ],
+  const animatedStyle = useAnimatedStyle(() => {
+    const transformStyle = (() => {
+      let value = {};
+      if (color) {
+        value = {
+          ...value,
+          backgroundColor: withTiming(color, { duration: 500 }),
+        };
+      }
 
-    width:
-      isEnabled && endNodeLayout
-        ? withTiming(endNodeLayout.width, { duration: 500 })
-        : withTiming(startNodeLayout?.width, { duration: 500 }),
-    height:
-      isEnabled && endNodeLayout
-        ? withTiming(endNodeLayout.height, { duration: 500 })
-        : withTiming(startNodeLayout?.height, { duration: 500 }),
-    backgroundColor: withTiming(color, { duration: 500 }),
-  }));
+      return value;
+    })();
 
-  if (startNode) {
-    console.log(startNode.element.props);
-  }
+    const nodeDefault = isEnabled
+      ? nodeDefaultStyle.end
+      : nodeDefaultStyle.start;
+
+    const transformKey = (() => {
+      let value: any[] = [];
+      if (startNodeTransform?.transform && endNodeTransform?.transform) {
+        //TODO: Need to add default style transform for this because the current
+        // Transform is override the default style need to modify again
+
+        startNodeTransform?.transform.forEach((startNode) => {
+          endNodeTransform?.transform.forEach((endNode) => {
+            const keyStart = Object.keys(startNode)[0];
+            const keyEnd = Object.keys(endNode)[0];
+
+            if (
+              keyStart === keyEnd &&
+              keyStart !== "translateX" &&
+              keyStart !== "translateY"
+            ) {
+              value.push({
+                [keyStart]: isEnabled
+                  ? withTiming(endNode[keyEnd], { duration: 500 })
+                  : withTiming(startNode[keyStart], { duration: 500 }),
+              });
+            }
+          });
+        });
+      }
+
+      return value;
+    })();
+
+    return {
+      transform: [
+        {
+          translateY:
+            isEnabled && endNodeLayout
+              ? withTiming(
+                  endNodeLayout.y -
+                    startNodeLayout.y +
+                    (translateYEndNode ?? 0),
+                  { duration: 500 }
+                )
+              : withTiming(translateYStartNode ?? 0, { duration: 500 }),
+        },
+        {
+          translateX:
+            isEnabled && endNodeLayout
+              ? withTiming(
+                  endNodeLayout.x -
+                    startNodeLayout.x +
+                    (translateXEndNode ?? 0),
+                  { duration: 500 }
+                )
+              : withTiming(translateXStartNode ?? 0, { duration: 500 }),
+        },
+        ...nodeDefault,
+        ...transformKey,
+      ],
+      width:
+        isEnabled && endNodeLayout
+          ? withTiming(endNodeLayout.width, { duration: 500 })
+          : withTiming(startNodeLayout?.width, { duration: 500 }),
+      height:
+        isEnabled && endNodeLayout
+          ? withTiming(endNodeLayout.height, { duration: 500 })
+          : withTiming(startNodeLayout?.height, { duration: 500 }),
+      ...transformStyle,
+    };
+  });
+
+  useEffect(() => {
+    if (startNode) {
+      const handleProps = (props: any, type: "start" | "end") => {
+        // Style handler
+        for (const key in props) {
+          if (key === "style") {
+            if (props.style.length > 0) {
+              let style: ViewStyle = {};
+
+              for (let i = 0; i < props.style.length; i++) {
+                // Handle  style
+                const propsStyle = props.style[i];
+                style = { ...style, ...propsStyle };
+              }
+
+              if (style?.backgroundColor) {
+                type === "start"
+                  ? setStartNodeTransform((prevState) => ({
+                      ...prevState,
+                      backgroundColor: style?.backgroundColor?.toString(),
+                    }))
+                  : setEndNodeTransform((prevState) => ({
+                      ...prevState,
+                      backgroundColor: style?.backgroundColor?.toString(),
+                    }));
+              }
+              if (style.transform) {
+                type === "start"
+                  ? setStartNodeTransform((prevState) => ({
+                      ...prevState,
+                      transform: style.transform,
+                    }))
+                  : setEndNodeTransform((prevState) => ({
+                      ...prevState,
+                      transform: style.transform,
+                    }));
+              }
+            } else {
+              // Handle single style
+              if (props.style.backgroundColor) {
+                // setStartNodeBackground(props.style.backgroundColor);
+                type === "start"
+                  ? setStartNodeTransform((prevState) => ({
+                      ...prevState,
+                      backgroundColor: props.style.backgroundColor,
+                    }))
+                  : setEndNodeTransform((prevState) => ({
+                      ...prevState,
+                      backgroundColor: props.style.backgroundColor,
+                    }));
+              }
+              if (props.style.transform) {
+                // setTransformMatrix(props.style.transform);
+                type === "start"
+                  ? setStartNodeTransform((prevState) => ({
+                      ...prevState,
+                      transform: props.style.transform,
+                    }))
+                  : setEndNodeTransform((prevState) => ({
+                      ...prevState,
+                      transform: props.style.transform,
+                    }));
+              }
+            }
+          }
+        }
+      };
+
+      handleProps(startNode.element.props, "start");
+      handleProps(endNode.element.props, "end");
+    }
+  }, [startNode, endNode]);
 
   useEffect(() => {
     if (ref) {
@@ -187,11 +379,6 @@ export const LayoutWrapper = ({
     ),
     []
   );
-  // const handlePress = () => {
-  //   width.value = withSpring(width.value + 50);
-  // };
-
-  endNodeLayout && console.log("endnodelayout", endNodeLayout);
 
   return (
     <View ref={ref} style={{ flex: 1 }}>
