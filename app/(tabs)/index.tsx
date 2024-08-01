@@ -160,24 +160,24 @@ const OpenContent = ({ onNode }: any) => {
 
       <View style={{ height: 20 }} />
       <TestNodeWrapper onNode={onNode}>
-        {/* <Text
-          style={{ fontSize: 16, fontWeight: "bold", color: "black" }}
+        <Text
+          style={{ fontSize: 24, fontWeight: "bold", color: "red" }}
           onLayout={(e) => {}}
         >
           Task 1
-        </Text> */}
+        </Text>
         {/* <Image
           source={{ uri: "https://reactnative.dev/img/tiny_logo.png" }}
           style={{ width: 100, height: 100, resizeMode: "stretch" }}
         /> */}
-        <View
+        {/* <View
           style={{
             width: 50,
             height: 100,
             backgroundColor: "pink",
             transform: [{ rotateX: "10deg" }, { translateX: 30 }],
           }}
-        />
+        /> */}
       </TestNodeWrapper>
       <View style={{ height: 20 }} />
 
@@ -260,16 +260,16 @@ const ClosedContent = ({ onNode }) => {
         {/* //TODO: Create a wrapper component for the user more convenient */}
 
         <TestNodeWrapper onNode={onNode}>
-          {/* <Text style={{ fontSize: 16, fontWeight: "bold", color: "black" }}>
+          <Text style={{ fontSize: 16, fontWeight: "bold", color: "black" }}>
             Task 1
-          </Text> */}
+          </Text>
 
           {/* <Image
             source={{ uri: "https://reactnative.dev/img/tiny_logo.png" }}
             style={{ width: 100, height: 50, resizeMode: "stretch" }}
           /> */}
 
-          <View
+          {/* <View
             style={[
               {
                 width: 50,
@@ -283,7 +283,7 @@ const ClosedContent = ({ onNode }) => {
             //   height: 50,
             //   backgroundColor: "red",
             // }}
-          />
+          /> */}
         </TestNodeWrapper>
         <Text style={{ color: "green", marginTop: 16 }}>Uu tien cao</Text>
       </View>

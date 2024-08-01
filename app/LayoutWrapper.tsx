@@ -5,7 +5,13 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { findNodeHandle, View, ViewProps, ViewStyle } from "react-native";
+import {
+  findNodeHandle,
+  TextStyle,
+  View,
+  ViewProps,
+  ViewStyle,
+} from "react-native";
 import Animated, {
   interpolateColor,
   useAnimatedStyle,
@@ -24,6 +30,8 @@ export const useIsMount = () => {
 type NodeTransform = {
   transform?: any;
   backgroundColor?: string;
+  color?: string;
+  fontSize?: number;
 };
 
 const getTransformWithKey = (transformMatrix, key) => {
@@ -94,7 +102,7 @@ export const LayoutWrapper = ({
   const nodeDefaultStyle = (() => {
     let startValue: any[] = [];
     let endValue: any[] = [];
-    if (startNodeTransform) {
+    if (startNodeTransform?.transform) {
       startNodeTransform?.transform.forEach((startNode) => {
         const keyStart = Object.keys(startNode)[0];
         if (keyStart !== "translateX" && keyStart !== "translateY") {
@@ -105,8 +113,8 @@ export const LayoutWrapper = ({
       });
     }
 
-    if (endNodeTransform) {
-      endNodeTransform?.transform.forEach((endNode) => {
+    if (endNodeTransform?.transform) {
+      endNodeTransform?.transform?.forEach((endNode) => {
         const keyEnd = Object.keys(endNode)[0];
         if (keyEnd !== "translateX" && keyEnd !== "translateY") {
           endValue.push({
@@ -130,6 +138,23 @@ export const LayoutWrapper = ({
         value = {
           ...value,
           backgroundColor: withTiming(color, { duration: 500 }),
+        };
+      }
+
+      if (startNodeTransform?.fontSize && endNodeTransform?.fontSize) {
+        value = {
+          ...value,
+          fontSize: isEnabled
+            ? withTiming(endNodeTransform.fontSize, { duration: 500 })
+            : withTiming(startNodeTransform.fontSize, { duration: 500 }),
+        };
+      }
+      if (startNodeTransform?.color && endNodeTransform?.color) {
+        value = {
+          ...value,
+          color: isEnabled
+            ? withTiming(endNodeTransform.color, { duration: 500 })
+            : withTiming(startNodeTransform.color, { duration: 500 }),
         };
       }
 
@@ -215,7 +240,7 @@ export const LayoutWrapper = ({
         for (const key in props) {
           if (key === "style") {
             if (props.style.length > 0) {
-              let style: ViewStyle = {};
+              let style: ViewStyle & TextStyle = {};
 
               for (let i = 0; i < props.style.length; i++) {
                 // Handle  style
@@ -245,10 +270,45 @@ export const LayoutWrapper = ({
                       transform: style.transform,
                     }));
               }
+
+              if (style?.backgroundColor) {
+                type === "start"
+                  ? setStartNodeTransform((prevState) => ({
+                      ...prevState,
+                      backgroundColor: style?.backgroundColor?.toString(),
+                    }))
+                  : setEndNodeTransform((prevState) => ({
+                      ...prevState,
+                      backgroundColor: style?.backgroundColor?.toString(),
+                    }));
+              }
+              if (style.fontSize) {
+                console.log(style.fontSize);
+                type === "start"
+                  ? setStartNodeTransform((prevState) => ({
+                      ...prevState,
+                      fontSize: style.fontSize,
+                    }))
+                  : setEndNodeTransform((prevState) => ({
+                      ...prevState,
+                      fontSize: style.fontSize,
+                    }));
+              }
+
+              if (style.color) {
+                type === "start"
+                  ? setStartNodeTransform((prevState) => ({
+                      ...prevState,
+                      color: style.color?.toString(),
+                    }))
+                  : setEndNodeTransform((prevState) => ({
+                      ...prevState,
+                      color: style.color?.toString(),
+                    }));
+              }
             } else {
               // Handle single style
               if (props.style.backgroundColor) {
-                // setStartNodeBackground(props.style.backgroundColor);
                 type === "start"
                   ? setStartNodeTransform((prevState) => ({
                       ...prevState,
@@ -260,7 +320,6 @@ export const LayoutWrapper = ({
                     }));
               }
               if (props.style.transform) {
-                // setTransformMatrix(props.style.transform);
                 type === "start"
                   ? setStartNodeTransform((prevState) => ({
                       ...prevState,
@@ -269,6 +328,29 @@ export const LayoutWrapper = ({
                   : setEndNodeTransform((prevState) => ({
                       ...prevState,
                       transform: props.style.transform,
+                    }));
+              }
+              if (props.style.fontSize) {
+                type === "start"
+                  ? setStartNodeTransform((prevState) => ({
+                      ...prevState,
+                      fontSize: props.style.fontSize,
+                    }))
+                  : setEndNodeTransform((prevState) => ({
+                      ...prevState,
+                      fontSize: props.style.fontSize,
+                    }));
+              }
+
+              if (props.style.color) {
+                type === "start"
+                  ? setStartNodeTransform((prevState) => ({
+                      ...prevState,
+                      color: props.style.color,
+                    }))
+                  : setEndNodeTransform((prevState) => ({
+                      ...prevState,
+                      color: props.style.color,
                     }));
               }
             }
@@ -381,6 +463,7 @@ export const LayoutWrapper = ({
   );
 
   return (
+    //TODO: Add when finish the animation delete the clone and appear the current node
     <View ref={ref} style={{ flex: 1 }}>
       <StartNodeComponent />
       <EndNodeComponent />
