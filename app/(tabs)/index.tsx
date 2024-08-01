@@ -1,64 +1,25 @@
-import React, {
-  ComponentClass,
-  ComponentType,
-  FunctionComponent,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   View,
   Text,
   Button,
-  FlatList,
   SafeAreaView,
   Pressable,
   ScrollView,
-  TextInput,
-  findNodeHandle,
-  TouchableOpacity,
-  Image,
 } from "react-native";
 import Animated, {
-  FadeIn,
-  FadeInLeft,
-  FadeOut,
-  measure,
   MeasuredDimensions,
-  runOnUI,
-  useAnimatedRef,
   useSharedValue,
-  withDelay,
-  withSpring,
   withTiming,
 } from "react-native-reanimated";
-import CloneWithAbsolutePosition from "./CloneWithAbsolutePosition";
-import { AnimatedComponentRef } from "react-native-reanimated/lib/typescript/createAnimatedComponent/commonTypes";
 
-import CloneTextAbsolute from "./CloneTextAbsolute";
-import Wrapper from "../Wrapper";
-import { createAnimatedComponent } from "react-native-reanimated/lib/typescript/createAnimatedComponent";
-import { StartNodeWrapper, TestWrapper } from "../StartNodeWrapper";
-import { EndNodeWrapper } from "../EndNodeWrapper";
-import { TestNodeWrapper } from "../TestNode";
+import { TestNodeWrapper } from "../TestNodeWrapper";
 import { LayoutWrapper } from "../LayoutWrapper";
 
 export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.mainContainer}>
-      {/* <View
-        style={{
-          width: "100%",
-          height: 50,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Text style={styles.title}>Todo list</Text>
-      </View> */}
-
-      {/* <View style={{ flex: 1, alignItems: "center", paddingTop: 24 }}> */}
       <ScrollView
         style={{}}
         contentContainerStyle={{
@@ -186,62 +147,6 @@ const OpenContent = ({ onNode }: any) => {
       </Text>
       <Button title="Xong" />
     </Animated.View>
-  );
-};
-
-const ClosedContentTest = ({ status }) => {
-  const [startNode, setStartNode] = useState<any>();
-  const [endNode, setEndNode] = useState<any>();
-
-  if (startNode) {
-    // console.log(startNode.layout);
-  }
-
-  return (
-    <>
-      <Animated.View style={[{ flexDirection: "row", flex: 1 }]}>
-        <View
-          style={{
-            width: 20,
-            height: 20,
-            backgroundColor: "gray",
-            borderRadius: 5,
-          }}
-        />
-        <View style={{ marginStart: 16 }}>
-          {/* //TODO: Create a wrapper component for the user more convenient */}
-          <StartNodeWrapper
-            onNode={(node) => setStartNode(node)}
-            endNode={endNode}
-            isStart={status === "open" ? true : false}
-          >
-            <TouchableOpacity onPress={() => console.log("start node")}>
-              <Text style={{ fontSize: 16, fontWeight: "bold" }}>Task 1</Text>
-            </TouchableOpacity>
-          </StartNodeWrapper>
-
-          <EndNodeWrapper
-            onNode={(node) => setEndNode(node)}
-            isStart={status === "open" ? true : false}
-          >
-            <TouchableOpacity onPress={() => console.log("end node")}>
-              <Text style={{ fontSize: 16, fontWeight: "bold" }}>Task 1</Text>
-            </TouchableOpacity>
-          </EndNodeWrapper>
-          <Text style={{ color: "green", marginTop: 16 }}>Uu tien cao</Text>
-        </View>
-      </Animated.View>
-
-      {/* {startNode && (
-        <View
-          style={[
-            { backgroundColor: "black", width: 10, height: 10 },
-            StyleSheet.absoluteFill,
-            { left: startNode.layout.x, top: startNode.layout.y },
-          ]}
-        />
-      )} */}
-    </>
   );
 };
 

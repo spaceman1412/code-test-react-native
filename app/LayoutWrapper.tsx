@@ -470,8 +470,6 @@ export const LayoutWrapper = ({
       <StartNodeComponent />
       <EndNodeComponent />
 
-      {/* {isEnabled ? endNodeContainer : startNodeContainer} */}
-
       {startNodeLayout && (
         <TestNodeAnimated
           style={[
@@ -485,8 +483,6 @@ export const LayoutWrapper = ({
           ]}
         />
       )}
-
-      {/* <Button onPress={handlePress} title="Click me" /> */}
     </View>
   );
 };
