@@ -464,6 +464,8 @@ export const LayoutWrapper = ({
 
   return (
     //TODO: Add when finish the animation delete the clone and appear the current node
+
+    //TODO: Do allow multiple animation element in the same layout
     <View ref={ref} style={{ flex: 1 }}>
       <StartNodeComponent />
       <EndNodeComponent />
