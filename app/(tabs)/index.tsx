@@ -59,16 +59,17 @@ const TodoItem = () => {
   const [startNode, setStartNode] = useState<any>();
   const [endNode, setEndNode] = useState<any>();
 
-  const isEnabled = status === "open" ? true : false;
+  const isEnabled = useSharedValue(false);
 
   const onPress = () => {
-    if (status === "closed") {
+    if (isEnabled.value === false) {
       height.value = withTiming(250);
-      setStatus("open");
+      isEnabled.value = true;
       transformY.value = withTiming(17);
-    } else if (status === "open") {
+    } else if (isEnabled.value === true) {
       height.value = withTiming(150);
-      setStatus("closed");
+      isEnabled.value = false;
+
       transformY.value = withTiming(0);
     }
   };

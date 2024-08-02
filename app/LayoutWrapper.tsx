@@ -92,7 +92,7 @@ export const LayoutWrapper = ({
       endNodeTransform?.backgroundColor
     ) {
       return interpolateColor(
-        isEnabled,
+        isEnabled.value,
         [0, 1],
         [startNodeTransform.backgroundColor, endNodeTransform.backgroundColor]
       );
@@ -144,7 +144,7 @@ export const LayoutWrapper = ({
       if (startNodeTransform?.fontSize && endNodeTransform?.fontSize) {
         value = {
           ...value,
-          fontSize: isEnabled
+          fontSize: isEnabled.value
             ? withTiming(endNodeTransform.fontSize, { duration: 500 })
             : withTiming(startNodeTransform.fontSize, { duration: 500 }),
         };
@@ -152,7 +152,7 @@ export const LayoutWrapper = ({
       if (startNodeTransform?.color && endNodeTransform?.color) {
         value = {
           ...value,
-          color: isEnabled
+          color: isEnabled.value
             ? withTiming(endNodeTransform.color, { duration: 500 })
             : withTiming(startNodeTransform.color, { duration: 500 }),
         };
@@ -161,7 +161,7 @@ export const LayoutWrapper = ({
       return value;
     })();
 
-    const nodeDefault = isEnabled
+    const nodeDefault = isEnabled.value
       ? nodeDefaultStyle.end
       : nodeDefaultStyle.start;
 
@@ -182,7 +182,7 @@ export const LayoutWrapper = ({
               keyStart !== "translateY"
             ) {
               value.push({
-                [keyStart]: isEnabled
+                [keyStart]: isEnabled.value
                   ? withTiming(endNode[keyEnd], { duration: 500 })
                   : withTiming(startNode[keyStart], { duration: 500 }),
               });
@@ -198,7 +198,7 @@ export const LayoutWrapper = ({
       transform: [
         {
           translateY:
-            isEnabled && endNodeLayout
+            isEnabled.value && endNodeLayout
               ? withTiming(
                   endNodeLayout.y -
                     startNodeLayout.y +
@@ -209,7 +209,7 @@ export const LayoutWrapper = ({
         },
         {
           translateX:
-            isEnabled && endNodeLayout
+            isEnabled.value && endNodeLayout
               ? withTiming(
                   endNodeLayout.x -
                     startNodeLayout.x +
@@ -222,11 +222,11 @@ export const LayoutWrapper = ({
         ...transformKey,
       ],
       width:
-        isEnabled && endNodeLayout
+        isEnabled.value && endNodeLayout
           ? withTiming(endNodeLayout.width, { duration: 500 })
           : withTiming(startNodeLayout?.width, { duration: 500 }),
       height:
-        isEnabled && endNodeLayout
+        isEnabled.value && endNodeLayout
           ? withTiming(endNodeLayout.height, { duration: 500 })
           : withTiming(startNodeLayout?.height, { duration: 500 }),
       ...transformStyle,
@@ -396,20 +396,20 @@ export const LayoutWrapper = ({
 
   const animatedStyleStartNode = useAnimatedStyle(
     () => ({
-      opacity: isEnabled
-        ? withTiming(0, { duration: 400 })
-        : withTiming(1, { duration: 300 }),
+      opacity: isEnabled.value
+        ? withTiming(0, { duration: 500 })
+        : withTiming(1, { duration: 500 }),
     }),
-    [isEnabled]
+    [isEnabled.value]
   );
 
   const animatedStyleEndNode = useAnimatedStyle(
     () => ({
-      opacity: isEnabled
-        ? withTiming(1, { duration: 300 })
-        : withTiming(0, { duration: 400 }),
+      opacity: isEnabled.value
+        ? withTiming(1, { duration: 500 })
+        : withTiming(0, { duration: 500 }),
     }),
-    [isEnabled]
+    [isEnabled.value]
   );
 
   const TestNodeR = React.forwardRef(
