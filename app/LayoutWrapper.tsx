@@ -234,6 +234,37 @@ export const LayoutWrapper = ({
   });
 
   useEffect(() => {
+    if (ref) {
+      // Measure layout of startNode and endNode
+      if (startNode) {
+        setTimeout(() => {
+          startNode.ref?.current?.measureLayout(
+            findNodeHandle(ref.current),
+            (x, y, width, height) => {
+              setStartNodeLayout({ x, y, width, height });
+            },
+            () => {
+              console.log("measureLayout error");
+            }
+          );
+        }, 0);
+      }
+
+      if (endNode) {
+        setTimeout(() => {
+          endNode.ref?.current?.measureLayout(
+            findNodeHandle(ref.current),
+            (x, y, width, height) => {
+              setEndNodeLayout({ x, y, width, height });
+            },
+            () => {
+              console.log("measureLayout error");
+            }
+          );
+        }, 0);
+      }
+    }
+
     if (startNode) {
       const handleProps = (props: any, type: "start" | "end") => {
         // Style handler
@@ -360,39 +391,6 @@ export const LayoutWrapper = ({
 
       handleProps(startNode.element.props, "start");
       handleProps(endNode.element.props, "end");
-    }
-  }, [startNode, endNode]);
-
-  useEffect(() => {
-    if (ref) {
-      // Measure layout of startNode and endNode
-      if (startNode) {
-        setTimeout(() => {
-          startNode.ref?.current?.measureLayout(
-            findNodeHandle(ref.current),
-            (x, y, width, height) => {
-              setStartNodeLayout({ x, y, width, height });
-            },
-            () => {
-              console.log("measureLayout error");
-            }
-          );
-        }, 0);
-      }
-
-      if (endNode) {
-        setTimeout(() => {
-          endNode.ref?.current?.measureLayout(
-            findNodeHandle(ref.current),
-            (x, y, width, height) => {
-              setEndNodeLayout({ x, y, width, height });
-            },
-            () => {
-              console.log("measureLayout error");
-            }
-          );
-        }, 0);
-      }
     }
   }, [startNode, ref, endNode]);
 
