@@ -1,7 +1,7 @@
 import React, { cloneElement, useEffect, useRef } from "react";
 import { Children } from "react";
 
-export const TestNodeWrapper = ({ onNode, children }) => {
+export const TestNodeWrapper = ({ onNode, children, shareId }) => {
   const element = Children.only(children);
   const ref = useRef<any>();
   // const [delayIsStart, setDelayIsStart] = useState(isStart);
@@ -18,7 +18,7 @@ export const TestNodeWrapper = ({ onNode, children }) => {
 
   useEffect(() => {
     if (ref) {
-      const node = { element: element, ref: ref };
+      const node = { element: element, ref: ref, shareId: shareId };
       if (ref.current !== null) {
         onNode(node);
       }

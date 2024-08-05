@@ -10,7 +10,9 @@ import {
 } from "react-native";
 import Animated, {
   MeasuredDimensions,
+  SharedTransition,
   useSharedValue,
+  withSpring,
   withTiming,
 } from "react-native-reanimated";
 
@@ -56,8 +58,12 @@ const TodoItem = () => {
 
   const measurementValue = useSharedValue<MeasuredDimensions | null>(null);
   const transformY = useSharedValue(0);
-  const [startNode, setStartNode] = useState<any>();
-  const [endNode, setEndNode] = useState<any>();
+  const [startNode, setStartNode] = useState<any[]>([]);
+  const [endNode, setEndNode] = useState<any[]>([]);
+  const [nodeArr, setNodeArr] = useState<any[]>([]);
+
+  let testStartNode;
+  let testEndNode;
 
   const isEnabled = useSharedValue(false);
 
@@ -74,9 +80,32 @@ const TodoItem = () => {
     }
   };
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    if (startNode.length === endNode.length) {
+      startNode.forEach((element, index) => {
+        if (element.shareId === endNode[index].shareId) {
+          setNodeArr((prev) => [
+            ...prev,
+            {
+              startNode: element,
+              endNode: endNode[index],
+              shareId: element.shareId,
+            },
+          ]);
+        }
+      });
+    }
+  }, [startNode, endNode]);
 
   const height = useSharedValue(150);
+
+  const transition = SharedTransition.custom((values) => {
+    "worklet";
+    return {
+      height: withSpring(values.targetHeight),
+      width: withSpring(values.targetWidth),
+    };
+  });
 
   return (
     <AnimatedPressable
@@ -91,29 +120,19 @@ const TodoItem = () => {
       onPress={onPress}
     >
       <LayoutWrapper
-        startNode={startNode}
-        endNode={endNode}
+        startNode={startNode[0]}
+        endNode={endNode[0]}
+        nodeArr={nodeArr}
         isEnabled={isEnabled}
-        startNodeContainer={
-          <ClosedContent
-            onNode={(node) => {
-              setStartNode(node);
-            }}
-          />
-        }
-        endNodeContainer={
-          <OpenContent
-            onNode={(node) => {
-              setEndNode(node);
-            }}
-          />
-        }
+        startNodeContainer={<ClosedContent setStartNode={setStartNode} />}
+        endNodeContainer={<OpenContent setEndNode={setEndNode} />}
+        sharedTransitionStyle={transition}
       />
     </AnimatedPressable>
   );
 };
 
-const OpenContent = ({ onNode }: any) => {
+const OpenContent = ({ setEndNode }: any) => {
   return (
     <Animated.View style={{ flex: 1 }}>
       <View style={{ width: "100%", alignItems: "flex-end" }}>
@@ -121,7 +140,12 @@ const OpenContent = ({ onNode }: any) => {
       </View>
 
       <View style={{ height: 20 }} />
-      <TestNodeWrapper onNode={onNode}>
+      <TestNodeWrapper
+        onNode={(node) => {
+          setEndNode((prev) => [...prev, node]);
+        }}
+        shareId={"text"}
+      >
         <Text
           style={{ fontSize: 24, fontWeight: "bold", color: "red" }}
           onLayout={(e) => {}}
@@ -143,15 +167,25 @@ const OpenContent = ({ onNode }: any) => {
       </TestNodeWrapper>
       <View style={{ height: 20 }} />
 
-      <Text style={{ fontSize: 16, fontWeight: "bold" }} onLayout={(e) => {}}>
-        Task 1
-      </Text>
+      <TestNodeWrapper
+        onNode={(node) => {
+          setEndNode((prev) => [...prev, node]);
+        }}
+        shareId={"text2"}
+      >
+        <Text
+          style={{ fontSize: 16, fontWeight: "bold", color: "black" }}
+          onLayout={(e) => {}}
+        >
+          Task 1
+        </Text>
+      </TestNodeWrapper>
       <Button title="Xong" />
     </Animated.View>
   );
 };
 
-const ClosedContent = ({ onNode }) => {
+const ClosedContent = ({ setStartNode }) => {
   return (
     <Animated.View style={[{ flexDirection: "row", flex: 1 }]}>
       <View
@@ -165,7 +199,12 @@ const ClosedContent = ({ onNode }) => {
       <View style={{ marginStart: 16 }}>
         {/* //TODO: Create a wrapper component for the user more convenient */}
 
-        <TestNodeWrapper onNode={onNode}>
+        <TestNodeWrapper
+          onNode={(node) => {
+            setStartNode((prev) => [...prev, node]);
+          }}
+          shareId={"text"}
+        >
           <Text style={{ fontSize: 16, fontWeight: "bold", color: "black" }}>
             Task 1
           </Text>
@@ -191,7 +230,15 @@ const ClosedContent = ({ onNode }) => {
             // }}
           /> */}
         </TestNodeWrapper>
-        <Text style={{ color: "green", marginTop: 16 }}>Uu tien cao</Text>
+
+        <TestNodeWrapper
+          onNode={(node) => {
+            setStartNode((prev) => [...prev, node]);
+          }}
+          shareId={"text2"}
+        >
+          <Text style={{ color: "green", marginTop: 16 }}>Uu tien cao</Text>
+        </TestNodeWrapper>
       </View>
     </Animated.View>
   );

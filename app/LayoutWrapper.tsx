@@ -48,19 +48,7 @@ const getTransformWithKey = (transformMatrix, key) => {
   } else return null;
 };
 
-export const LayoutWrapper = ({
-  startNode,
-  endNode,
-  children,
-  isEnabled,
-  startNodeContainer,
-  endNodeContainer,
-}: any) => {
-  React.Children.forEach(children, (element) => {
-    if (!React.isValidElement(element)) return;
-  });
-
-  const ref = useRef<any>();
+const OneNode = ({ startNode, endNode, passRef, isEnabled }: any) => {
   const [startNodeLayout, setStartNodeLayout] = useState<any>();
 
   const [endNodeLayout, setEndNodeLayout] = useState<any>();
@@ -92,7 +80,7 @@ export const LayoutWrapper = ({
       endNodeTransform?.backgroundColor
     ) {
       return interpolateColor(
-        isEnabled.value,
+        isEnabled?.value,
         [0, 1],
         [startNodeTransform.backgroundColor, endNodeTransform.backgroundColor]
       );
@@ -144,7 +132,7 @@ export const LayoutWrapper = ({
       if (startNodeTransform?.fontSize && endNodeTransform?.fontSize) {
         value = {
           ...value,
-          fontSize: isEnabled.value
+          fontSize: isEnabled?.value
             ? withTiming(endNodeTransform.fontSize, { duration: 500 })
             : withTiming(startNodeTransform.fontSize, { duration: 500 }),
         };
@@ -152,7 +140,7 @@ export const LayoutWrapper = ({
       if (startNodeTransform?.color && endNodeTransform?.color) {
         value = {
           ...value,
-          color: isEnabled.value
+          color: isEnabled?.value
             ? withTiming(endNodeTransform.color, { duration: 500 })
             : withTiming(startNodeTransform.color, { duration: 500 }),
         };
@@ -161,7 +149,7 @@ export const LayoutWrapper = ({
       return value;
     })();
 
-    const nodeDefault = isEnabled.value
+    const nodeDefault = isEnabled?.value
       ? nodeDefaultStyle.end
       : nodeDefaultStyle.start;
 
@@ -182,7 +170,7 @@ export const LayoutWrapper = ({
               keyStart !== "translateY"
             ) {
               value.push({
-                [keyStart]: isEnabled.value
+                [keyStart]: isEnabled?.value
                   ? withTiming(endNode[keyEnd], { duration: 500 })
                   : withTiming(startNode[keyStart], { duration: 500 }),
               });
@@ -198,7 +186,7 @@ export const LayoutWrapper = ({
       transform: [
         {
           translateY:
-            isEnabled.value && endNodeLayout
+            isEnabled?.value && endNodeLayout
               ? withTiming(
                   endNodeLayout.y -
                     startNodeLayout.y +
@@ -209,7 +197,7 @@ export const LayoutWrapper = ({
         },
         {
           translateX:
-            isEnabled.value && endNodeLayout
+            isEnabled?.value && endNodeLayout
               ? withTiming(
                   endNodeLayout.x -
                     startNodeLayout.x +
@@ -222,11 +210,11 @@ export const LayoutWrapper = ({
         ...transformKey,
       ],
       width:
-        isEnabled.value && endNodeLayout
+        isEnabled?.value && endNodeLayout
           ? withTiming(endNodeLayout.width, { duration: 500 })
           : withTiming(startNodeLayout?.width, { duration: 500 }),
       height:
-        isEnabled.value && endNodeLayout
+        isEnabled?.value && endNodeLayout
           ? withTiming(endNodeLayout.height, { duration: 500 })
           : withTiming(startNodeLayout?.height, { duration: 500 }),
       ...transformStyle,
@@ -234,12 +222,12 @@ export const LayoutWrapper = ({
   });
 
   useEffect(() => {
-    if (ref) {
+    if (passRef) {
       // Measure layout of startNode and endNode
       if (startNode) {
         setTimeout(() => {
           startNode.ref?.current?.measureLayout(
-            findNodeHandle(ref.current),
+            findNodeHandle(passRef.current),
             (x, y, width, height) => {
               setStartNodeLayout({ x, y, width, height });
             },
@@ -253,7 +241,7 @@ export const LayoutWrapper = ({
       if (endNode) {
         setTimeout(() => {
           endNode.ref?.current?.measureLayout(
-            findNodeHandle(ref.current),
+            findNodeHandle(passRef.current),
             (x, y, width, height) => {
               setEndNodeLayout({ x, y, width, height });
             },
@@ -389,10 +377,57 @@ export const LayoutWrapper = ({
         }
       };
 
-      handleProps(startNode.element.props, "start");
-      handleProps(endNode.element.props, "end");
+      handleProps(startNode?.element?.props, "start");
+      handleProps(endNode?.element?.props, "end");
     }
-  }, [startNode, ref, endNode]);
+  }, [startNode, passRef, endNode]);
+
+  const TestNodeR = React.forwardRef(
+    (props: ViewProps, ref: React.LegacyRef<View>) => {
+      const startNodeWithRef =
+        startNode &&
+        cloneElement(startNode.element, {
+          ref: ref,
+          style: [startNode.element.props.style, props.style],
+        });
+
+      return startNodeWithRef;
+    }
+  );
+
+  const TestNodeAnimated = Animated.createAnimatedComponent(TestNodeR);
+
+  return (
+    startNodeLayout && (
+      <TestNodeAnimated
+        style={[
+          {
+            position: "absolute",
+            top: startNodeLayout.y,
+            left: startNodeLayout.x,
+            overflow: "hidden",
+          },
+          animatedStyle,
+        ]}
+      />
+    )
+  );
+};
+
+export const LayoutWrapper = ({
+  startNode,
+  endNode,
+  children,
+  isEnabled,
+  startNodeContainer,
+  endNodeContainer,
+  nodeArr,
+}: any) => {
+  React.Children.forEach(children, (element) => {
+    if (!React.isValidElement(element)) return;
+  });
+
+  const ref = useRef<any>();
 
   const animatedStyleStartNode = useAnimatedStyle(
     () => ({
@@ -411,21 +446,6 @@ export const LayoutWrapper = ({
     }),
     [isEnabled.value]
   );
-
-  const TestNodeR = React.forwardRef(
-    (props: ViewProps, ref: React.LegacyRef<View>) => {
-      const startNodeWithRef =
-        startNode &&
-        cloneElement(startNode.element, {
-          ref: ref,
-          style: [startNode.element.props.style, props.style],
-        });
-
-      return startNodeWithRef;
-    }
-  );
-
-  const TestNodeAnimated = Animated.createAnimatedComponent(TestNodeR);
 
   const StartNodeComponent = useCallback(
     () => (
@@ -468,7 +488,7 @@ export const LayoutWrapper = ({
       <StartNodeComponent />
       <EndNodeComponent />
 
-      {startNodeLayout && (
+      {/* {startNodeLayout && (
         <TestNodeAnimated
           style={[
             {
@@ -480,7 +500,16 @@ export const LayoutWrapper = ({
             animatedStyle,
           ]}
         />
-      )}
+      )} */}
+      {nodeArr.map((value) => (
+        <OneNode
+          key={value.shareId}
+          startNode={value.startNode}
+          endNode={value.endNode}
+          passRef={ref}
+          isEnabled={isEnabled}
+        />
+      ))}
     </View>
   );
 };
