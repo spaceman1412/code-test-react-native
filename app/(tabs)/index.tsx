@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   Pressable,
   ScrollView,
+  Image,
 } from "react-native";
 import Animated, {
   MeasuredDimensions,
@@ -173,12 +174,10 @@ const OpenContent = ({ setEndNode }: any) => {
         }}
         shareId={"text2"}
       >
-        <Text
-          style={{ fontSize: 16, fontWeight: "bold", color: "black" }}
-          onLayout={(e) => {}}
-        >
-          Task 1
-        </Text>
+        <Image
+          source={{ uri: "https://reactnative.dev/img/tiny_logo.png" }}
+          style={{ width: 100, height: 100, resizeMode: "stretch" }}
+        />
       </TestNodeWrapper>
       <Button title="Xong" />
     </Animated.View>
@@ -237,7 +236,11 @@ const ClosedContent = ({ setStartNode }) => {
           }}
           shareId={"text2"}
         >
-          <Text style={{ color: "green", marginTop: 16 }}>Uu tien cao</Text>
+          {/* <Text style={{ color: "green", marginTop: 16 }}>Uu tien cao</Text> */}
+          <Image
+            source={{ uri: "https://reactnative.dev/img/tiny_logo.png" }}
+            style={{ width: 100, height: 50, resizeMode: "stretch" }}
+          />
         </TestNodeWrapper>
       </View>
     </Animated.View>
