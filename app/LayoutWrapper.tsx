@@ -1,3 +1,4 @@
+import { transformFileAsync } from "@babel/core";
 import React, {
   cloneElement,
   useCallback,
@@ -14,6 +15,8 @@ import {
 } from "react-native";
 import Animated, {
   interpolateColor,
+  runOnJS,
+  useAnimatedReaction,
   useAnimatedStyle,
   withTiming,
 } from "react-native-reanimated";
@@ -48,7 +51,13 @@ const getTransformWithKey = (transformMatrix, key) => {
   } else return null;
 };
 
-const OneNode = ({ startNode, endNode, passRef, isEnabled }: any) => {
+const OneNode = ({
+  startNode,
+  endNode,
+  passRef,
+  isEnabled,
+  customStyle,
+}: any) => {
   const [startNodeLayout, setStartNodeLayout] = useState<any>();
 
   const [endNodeLayout, setEndNodeLayout] = useState<any>();
@@ -88,15 +97,16 @@ const OneNode = ({ startNode, endNode, passRef, isEnabled }: any) => {
   })();
 
   const nodeDefaultStyle = (() => {
-    let startValue: any[] = [];
-    let endValue: any[] = [];
+    let startValue = {};
+    let endValue = {};
     if (startNodeTransform?.transform) {
       startNodeTransform?.transform.forEach((startNode) => {
         const keyStart = Object.keys(startNode)[0];
         if (keyStart !== "translateX" && keyStart !== "translateY") {
-          startValue.push({
+          startValue = {
+            ...startValue,
             [keyStart]: startNode[keyStart],
-          });
+          };
         }
       });
     }
@@ -105,9 +115,10 @@ const OneNode = ({ startNode, endNode, passRef, isEnabled }: any) => {
       endNodeTransform?.transform?.forEach((endNode) => {
         const keyEnd = Object.keys(endNode)[0];
         if (keyEnd !== "translateX" && keyEnd !== "translateY") {
-          endValue.push({
+          endValue = {
+            ...endValue,
             [keyEnd]: endNode[keyEnd],
-          });
+          };
         }
       });
     }
@@ -120,6 +131,187 @@ const OneNode = ({ startNode, endNode, passRef, isEnabled }: any) => {
 
   // Animated base on position of startNode and endNode
   const animatedStyle = useAnimatedStyle(() => {
+    const translateY =
+      isEnabled?.value && endNodeLayout
+        ? endNodeLayout.y - startNodeLayout.y + (translateYEndNode ?? 0)
+        : translateYStartNode ?? 0;
+
+    const translateX =
+      isEnabled?.value && endNodeLayout
+        ? endNodeLayout.x - startNodeLayout.x + (translateXEndNode ?? 0)
+        : translateXStartNode ?? 0;
+
+    const width =
+      isEnabled?.value && endNodeLayout
+        ? endNodeLayout.width
+        : startNodeLayout?.width;
+
+    const height =
+      isEnabled?.value && endNodeLayout
+        ? endNodeLayout.height
+        : startNodeLayout?.height;
+
+    const nodeDefault = isEnabled?.value
+      ? nodeDefaultStyle.end
+      : nodeDefaultStyle.start;
+
+    let value: any = {
+      transform: { translateX, translateY },
+      width,
+      height,
+    };
+
+    if (color) {
+      value = {
+        ...value,
+        backgroundColor: color,
+      };
+    }
+
+    if (startNodeTransform?.fontSize && endNodeTransform?.fontSize) {
+      value = {
+        ...value,
+        fontSize: isEnabled?.value
+          ? endNodeTransform.fontSize
+          : startNodeTransform.fontSize,
+      };
+    }
+
+    if (startNodeTransform?.color && endNodeTransform?.color) {
+      value = {
+        ...value,
+        color: isEnabled?.value
+          ? endNodeTransform.color
+          : startNodeTransform.color,
+      };
+    }
+
+    let transform = {};
+
+    if (startNodeTransform?.transform && endNodeTransform?.transform) {
+      //TODO: Need to add default style transform for this because the current
+      // Transform is override the default style need to modify again
+      startNodeTransform?.transform.forEach((startNode) => {
+        endNodeTransform?.transform.forEach((endNode) => {
+          const keyStart = Object.keys(startNode)[0];
+          const keyEnd = Object.keys(endNode)[0];
+
+          if (
+            keyStart === keyEnd &&
+            keyStart !== "translateX" &&
+            keyStart !== "translateY"
+          ) {
+            transform = {
+              ...transform,
+              [keyStart]: isEnabled?.value
+                ? endNode[keyEnd]
+                : startNode[keyStart],
+            };
+          }
+        });
+      });
+    }
+
+    value = {
+      ...value,
+      transform: { ...value.transform, ...transform },
+    };
+
+    //TODO: Need handle with user not custom style
+
+    const valueStyle = customStyle(value);
+
+    const tempStyle = Object.entries(valueStyle);
+
+    const filtered = tempStyle.filter(([key, value]) => key !== "transform");
+
+    const spreadStyle = Object.fromEntries(filtered);
+
+    const transformCustomStyle = (() => {
+      //TODO: Add remain the original
+      if (valueStyle.transform && valueStyle.transform.length > 0) {
+        let keys: any[] = [];
+        valueStyle.transform.forEach((element) => {
+          keys = [...keys, Object.keys(element)[0]];
+        });
+
+        if (!keys.includes("translateX")) {
+          valueStyle.transform.push({ translateX: withTiming(translateX) });
+        }
+        if (!keys.includes("translateY")) {
+          valueStyle.transform.push({ translateY: withTiming(translateY) });
+        }
+
+        return valueStyle.transform;
+      } else
+        return [
+          { translateX: withTiming(translateX) },
+          { translateY: withTiming(translateY) },
+        ];
+    })();
+
+    const transformKey = (() => {
+      let value = {};
+      if (startNodeTransform?.transform && endNodeTransform?.transform) {
+        //TODO: Need to add default style transform for this because the current
+        // Transform is override the default style need to modify again
+
+        startNodeTransform?.transform.forEach((startNode) => {
+          endNodeTransform?.transform.forEach((endNode) => {
+            const keyStart = Object.keys(startNode)[0];
+            const keyEnd = Object.keys(endNode)[0];
+
+            if (
+              keyStart === keyEnd &&
+              keyStart !== "translateX" &&
+              keyStart !== "translateY"
+            ) {
+              value = {
+                ...value,
+                [keyStart]: isEnabled?.value
+                  ? withTiming(endNode[keyEnd], { duration: 500 })
+                  : withTiming(startNode[keyStart], { duration: 500 }),
+              };
+            }
+          });
+        });
+      }
+
+      return value;
+    })();
+
+    let transformTempt = {};
+
+    let transformCustomInObject = {};
+
+    if (transformCustomStyle.length > 0) {
+      transformCustomStyle.forEach((element) => {
+        const key = Object.keys(element)[0];
+        transformCustomInObject = {
+          ...transformCustomInObject,
+          [key]: element[key],
+        };
+      });
+    }
+
+    transformTempt = {
+      ...nodeDefault,
+      ...transformKey,
+      ...transformCustomInObject,
+    };
+
+    let transformFinal = (() => {
+      let final = [];
+      if (Object.keys(transformTempt).length > 0) {
+        for (const [key, value] of Object.entries(transformTempt)) {
+          final.push({
+            [key]: value,
+          });
+        }
+      }
+      return final;
+    })();
+
     const transformStyle = (() => {
       let value = {};
       if (color) {
@@ -149,66 +341,8 @@ const OneNode = ({ startNode, endNode, passRef, isEnabled }: any) => {
       return value;
     })();
 
-    const nodeDefault = isEnabled?.value
-      ? nodeDefaultStyle.end
-      : nodeDefaultStyle.start;
-
-    const transformKey = (() => {
-      let value: any[] = [];
-      if (startNodeTransform?.transform && endNodeTransform?.transform) {
-        //TODO: Need to add default style transform for this because the current
-        // Transform is override the default style need to modify again
-
-        startNodeTransform?.transform.forEach((startNode) => {
-          endNodeTransform?.transform.forEach((endNode) => {
-            const keyStart = Object.keys(startNode)[0];
-            const keyEnd = Object.keys(endNode)[0];
-
-            if (
-              keyStart === keyEnd &&
-              keyStart !== "translateX" &&
-              keyStart !== "translateY"
-            ) {
-              value.push({
-                [keyStart]: isEnabled?.value
-                  ? withTiming(endNode[keyEnd], { duration: 500 })
-                  : withTiming(startNode[keyStart], { duration: 500 }),
-              });
-            }
-          });
-        });
-      }
-
-      return value;
-    })();
-
     return {
-      transform: [
-        {
-          translateY:
-            isEnabled?.value && endNodeLayout
-              ? withTiming(
-                  endNodeLayout.y -
-                    startNodeLayout.y +
-                    (translateYEndNode ?? 0),
-                  { duration: 500 }
-                )
-              : withTiming(translateYStartNode ?? 0, { duration: 500 }),
-        },
-        {
-          translateX:
-            isEnabled?.value && endNodeLayout
-              ? withTiming(
-                  endNodeLayout.x -
-                    startNodeLayout.x +
-                    (translateXEndNode ?? 0),
-                  { duration: 500 }
-                )
-              : withTiming(translateXStartNode ?? 0, { duration: 500 }),
-        },
-        ...nodeDefault,
-        ...transformKey,
-      ],
+      transform: transformFinal,
       width:
         isEnabled?.value && endNodeLayout
           ? withTiming(endNodeLayout.width, { duration: 500 })
@@ -218,6 +352,7 @@ const OneNode = ({ startNode, endNode, passRef, isEnabled }: any) => {
           ? withTiming(endNodeLayout.height, { duration: 500 })
           : withTiming(startNodeLayout?.height, { duration: 500 }),
       ...transformStyle,
+      ...spreadStyle,
     };
   });
 
@@ -302,7 +437,6 @@ const OneNode = ({ startNode, endNode, passRef, isEnabled }: any) => {
                     }));
               }
               if (style.fontSize) {
-                console.log(style.fontSize);
                 type === "start"
                   ? setStartNodeTransform((prevState) => ({
                       ...prevState,
@@ -422,6 +556,7 @@ export const LayoutWrapper = ({
   startNodeContainer,
   endNodeContainer,
   nodeArr,
+  customStyle,
 }: any) => {
   React.Children.forEach(children, (element) => {
     if (!React.isValidElement(element)) return;
@@ -488,19 +623,6 @@ export const LayoutWrapper = ({
       <StartNodeComponent />
       <EndNodeComponent />
 
-      {/* {startNodeLayout && (
-        <TestNodeAnimated
-          style={[
-            {
-              position: "absolute",
-              top: startNodeLayout.y,
-              left: startNodeLayout.x,
-              overflow: "hidden",
-            },
-            animatedStyle,
-          ]}
-        />
-      )} */}
       {nodeArr.map((value) => (
         <OneNode
           key={value.shareId}
@@ -508,6 +630,7 @@ export const LayoutWrapper = ({
           endNode={value.endNode}
           passRef={ref}
           isEnabled={isEnabled}
+          customStyle={customStyle}
         />
       ))}
     </View>

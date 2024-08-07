@@ -108,6 +108,21 @@ const TodoItem = () => {
     };
   });
 
+  const customStyle = (value) => {
+    "worklet";
+
+    //TODO: Handle case replace with transform add new function that handle
+    // except for transform to keep original value
+
+    //TODO: Add ignore animation for first mount
+
+    return {
+      height: withTiming(value.height),
+      width: withSpring(value.width),
+      transform: [{ translateX: withSpring(value.transform.translateX) }],
+    };
+  };
+
   return (
     <AnimatedPressable
       style={{
@@ -128,6 +143,7 @@ const TodoItem = () => {
         startNodeContainer={<ClosedContent setStartNode={setStartNode} />}
         endNodeContainer={<OpenContent setEndNode={setEndNode} />}
         sharedTransitionStyle={transition}
+        customStyle={customStyle}
       />
     </AnimatedPressable>
   );
@@ -176,7 +192,17 @@ const OpenContent = ({ setEndNode }: any) => {
       >
         <Image
           source={{ uri: "https://reactnative.dev/img/tiny_logo.png" }}
-          style={{ width: 100, height: 100, resizeMode: "stretch" }}
+          style={{
+            width: 100,
+            height: 100,
+            resizeMode: "stretch",
+
+            transform: [
+              // { rotateX: "10deg" },
+              // { rotateZ: "0deg" },
+              { translateX: 30 },
+            ],
+          }}
         />
       </TestNodeWrapper>
       <Button title="Xong" />
@@ -239,7 +265,13 @@ const ClosedContent = ({ setStartNode }) => {
           {/* <Text style={{ color: "green", marginTop: 16 }}>Uu tien cao</Text> */}
           <Image
             source={{ uri: "https://reactnative.dev/img/tiny_logo.png" }}
-            style={{ width: 100, height: 50, resizeMode: "stretch" }}
+            style={{
+              width: 100,
+              height: 50,
+              resizeMode: "stretch",
+
+              transform: [{ translateX: 45 }],
+            }}
           />
         </TestNodeWrapper>
       </View>
