@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import {
   findNodeHandle,
+  StyleProp,
   TextStyle,
   View,
   ViewProps,
@@ -16,10 +17,14 @@ import {
 import Animated, {
   interpolateColor,
   runOnJS,
+  SharedValue,
   useAnimatedReaction,
   useAnimatedStyle,
+  withSpring,
   withTiming,
 } from "react-native-reanimated";
+import { Node } from "./TestNodeWrapper";
+import { CustomStyleFunc } from "./(tabs)";
 
 // Check for first mount
 export const useIsMount = () => {
@@ -51,13 +56,21 @@ const getTransformWithKey = (transformMatrix, key) => {
   } else return null;
 };
 
+type OneNodeProps = {
+  startNode: Node;
+  endNode: Node;
+  passRef: React.RefObject<any>;
+  isEnabled: SharedValue<boolean>;
+  customStyle?: (value: any) => any;
+};
+
 const OneNode = ({
   startNode,
   endNode,
   passRef,
   isEnabled,
   customStyle,
-}: any) => {
+}: OneNodeProps) => {
   const [startNodeLayout, setStartNodeLayout] = useState<any>();
 
   const [endNodeLayout, setEndNodeLayout] = useState<any>();
@@ -89,7 +102,7 @@ const OneNode = ({
       endNodeTransform?.backgroundColor
     ) {
       return interpolateColor(
-        isEnabled?.value,
+        isEnabled.value ? 1 : 0,
         [0, 1],
         [startNodeTransform.backgroundColor, endNodeTransform.backgroundColor]
       );
@@ -189,8 +202,6 @@ const OneNode = ({
     let transform = {};
 
     if (startNodeTransform?.transform && endNodeTransform?.transform) {
-      //TODO: Need to add default style transform for this because the current
-      // Transform is override the default style need to modify again
       startNodeTransform?.transform.forEach((startNode) => {
         endNodeTransform?.transform.forEach((endNode) => {
           const keyStart = Object.keys(startNode)[0];
@@ -218,8 +229,9 @@ const OneNode = ({
     };
 
     //TODO: Need handle with user not custom style
+    //TODO: Handle undefined case
 
-    const valueStyle = customStyle(value);
+    const valueStyle = customStyle ? customStyle(value) : [];
 
     const tempStyle = Object.entries(valueStyle);
 
@@ -253,9 +265,6 @@ const OneNode = ({
     const transformKey = (() => {
       let value = {};
       if (startNodeTransform?.transform && endNodeTransform?.transform) {
-        //TODO: Need to add default style transform for this because the current
-        // Transform is override the default style need to modify again
-
         startNodeTransform?.transform.forEach((startNode) => {
           endNodeTransform?.transform.forEach((endNode) => {
             const keyStart = Object.keys(startNode)[0];
@@ -548,39 +557,38 @@ const OneNode = ({
   );
 };
 
+export interface LayoutWrapperProps {
+  isEnabled: SharedValue<boolean>;
+  startNodeContainer: React.ReactNode;
+  endNodeContainer: React.ReactNode;
+  nodeArr: {
+    startNode: Node;
+    endNode: Node;
+    shareId: string;
+  }[];
+  customStyle?: CustomStyleFunc;
+}
+
 export const LayoutWrapper = ({
-  startNode,
-  endNode,
-  children,
   isEnabled,
   startNodeContainer,
   endNodeContainer,
   nodeArr,
   customStyle,
-}: any) => {
-  React.Children.forEach(children, (element) => {
-    if (!React.isValidElement(element)) return;
-  });
+}: LayoutWrapperProps) => {
+  const ref = useRef<View>(null);
 
-  const ref = useRef<any>();
+  const animatedStyleStartNode = useAnimatedStyle(() => ({
+    opacity: isEnabled.value
+      ? withTiming(0, { duration: 500 })
+      : withTiming(1, { duration: 500 }),
+  }));
 
-  const animatedStyleStartNode = useAnimatedStyle(
-    () => ({
-      opacity: isEnabled.value
-        ? withTiming(0, { duration: 500 })
-        : withTiming(1, { duration: 500 }),
-    }),
-    [isEnabled.value]
-  );
-
-  const animatedStyleEndNode = useAnimatedStyle(
-    () => ({
-      opacity: isEnabled.value
-        ? withTiming(1, { duration: 500 })
-        : withTiming(0, { duration: 500 }),
-    }),
-    [isEnabled.value]
-  );
+  const animatedStyleEndNode = useAnimatedStyle(() => ({
+    opacity: isEnabled.value
+      ? withTiming(1, { duration: 500 })
+      : withTiming(0, { duration: 500 }),
+  }));
 
   const StartNodeComponent = useCallback(
     () => (
@@ -616,23 +624,22 @@ export const LayoutWrapper = ({
   );
 
   return (
-    //TODO: Add when finish the animation delete the clone and appear the current node
-
-    //TODO: Do allow multiple animation element in the same layout
     <View ref={ref} style={{ flex: 1 }}>
       <StartNodeComponent />
       <EndNodeComponent />
 
-      {nodeArr.map((value) => (
-        <OneNode
-          key={value.shareId}
-          startNode={value.startNode}
-          endNode={value.endNode}
-          passRef={ref}
-          isEnabled={isEnabled}
-          customStyle={customStyle}
-        />
-      ))}
+      {nodeArr.map((value) =>
+        value.startNode && value.endNode ? (
+          <OneNode
+            key={value.shareId}
+            startNode={value.startNode}
+            endNode={value.endNode}
+            passRef={ref}
+            isEnabled={isEnabled}
+            customStyle={customStyle}
+          />
+        ) : null
+      )}
     </View>
   );
 };

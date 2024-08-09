@@ -8,8 +8,13 @@ import {
   Pressable,
   ScrollView,
   Image,
+  ViewProps,
+  StyleProp,
+  ViewStyle,
+  PressableStateCallbackType,
 } from "react-native";
 import Animated, {
+  AnimatedStyle,
   MeasuredDimensions,
   SharedTransition,
   useSharedValue,
@@ -17,7 +22,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-import { TestNodeWrapper } from "../TestNodeWrapper";
+import { Node, TestNodeWrapper } from "../TestNodeWrapper";
 import { LayoutWrapper } from "../LayoutWrapper";
 
 export default function HomeScreen() {
@@ -54,13 +59,22 @@ export default function HomeScreen() {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
+export type CustomStyleFunc = (value: {
+  transform: {
+    translateX: any;
+    translateY: any;
+  };
+  width: any;
+  height: any;
+}) => StyleProp<ViewStyle>;
+
 const TodoItem = () => {
   const [status, setStatus] = React.useState<"open" | "closed">("closed");
 
   const measurementValue = useSharedValue<MeasuredDimensions | null>(null);
   const transformY = useSharedValue(0);
-  const [startNode, setStartNode] = useState<any[]>([]);
-  const [endNode, setEndNode] = useState<any[]>([]);
+  const [startNode, setStartNode] = useState<Node[]>([]);
+  const [endNode, setEndNode] = useState<Node[]>([]);
   const [nodeArr, setNodeArr] = useState<any[]>([]);
 
   let testStartNode;
@@ -100,26 +114,15 @@ const TodoItem = () => {
 
   const height = useSharedValue(150);
 
-  const transition = SharedTransition.custom((values) => {
-    "worklet";
-    return {
-      height: withSpring(values.targetHeight),
-      width: withSpring(values.targetWidth),
-    };
-  });
+  const test = SharedTransition.custom;
 
-  const customStyle = (value) => {
+  const customStyle: CustomStyleFunc = (value) => {
     "worklet";
 
-    //TODO: Handle case replace with transform add new function that handle
-    // except for transform to keep original value
-
-    //TODO: Add ignore animation for first mount
-
+    //TODO: Write a type function to suggest a value can modified to user
+    // Value type animation and return in view props
     return {
-      height: withTiming(value.height),
-      width: withSpring(value.width),
-      transform: [{ translateX: withSpring(value.transform.translateX) }],
+      transform: [{ translateX: withTiming(value.transform.translateX) }],
     };
   };
 
@@ -136,13 +139,10 @@ const TodoItem = () => {
       onPress={onPress}
     >
       <LayoutWrapper
-        startNode={startNode[0]}
-        endNode={endNode[0]}
         nodeArr={nodeArr}
         isEnabled={isEnabled}
         startNodeContainer={<ClosedContent setStartNode={setStartNode} />}
         endNodeContainer={<OpenContent setEndNode={setEndNode} />}
-        sharedTransitionStyle={transition}
         customStyle={customStyle}
       />
     </AnimatedPressable>

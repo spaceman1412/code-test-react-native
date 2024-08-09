@@ -1,20 +1,29 @@
-import React, { cloneElement, useEffect, useRef } from "react";
+import React, { cloneElement, ReactElement, useEffect, useRef } from "react";
 import { Children } from "react";
 
-export const TestNodeWrapper = ({ onNode, children, shareId }) => {
+type TestNodeProps = {
+  onNode: (node: Node) => void;
+  children: React.ReactNode;
+  shareId: string;
+};
+
+export type Node = {
+  element: React.ReactNode;
+  ref: React.RefObject<any>;
+  shareId: string;
+};
+
+export const TestNodeWrapper = ({
+  onNode,
+  children,
+  shareId,
+}: TestNodeProps) => {
   const element = Children.only(children);
   const ref = useRef<any>();
-  // const [delayIsStart, setDelayIsStart] = useState(isStart);
 
-  // useEffect(() => {
-  //   if (isStart) {
-  //     setTimeout(() => setDelayIsStart(isStart), 300);
-  //   } else setDelayIsStart(isStart);
-  // }, [isStart]);
-
-  React.Children.forEach(children, (element) => {
-    if (!React.isValidElement(element)) return;
-  });
+  if (!React.isValidElement(element)) {
+    return;
+  }
 
   useEffect(() => {
     if (ref) {
@@ -26,14 +35,11 @@ export const TestNodeWrapper = ({ onNode, children, shareId }) => {
   }, [ref]);
 
   const ChildrenHiddenWithRef = cloneElement(element, {
+    key: shareId,
+    // @ts-ignore
+
     ref: ref,
     style: [{ opacity: 0 }, element.props.style],
   });
-
-  return (
-    // <View ref={ref} style={{ opacity: 0 }}>
-    //   {children}
-    // </View>
-    <>{ChildrenHiddenWithRef}</>
-  );
+  return <>{ChildrenHiddenWithRef}</>;
 };
