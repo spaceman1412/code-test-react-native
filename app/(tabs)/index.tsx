@@ -63,22 +63,30 @@ export type CustomStyleFunc = (value: {
   transform: {
     translateX: any;
     translateY: any;
+    matrix: any;
+    perspective: any;
+    rotate: any;
+    rotateX: any;
+    rotateY: any;
+    rotateZ: any;
+    scaleX: any;
+    scaleY: any;
+    skewX: any;
+    skewY: any;
+    scale: any;
   };
   width: any;
   height: any;
+  backgroundColor: any;
+  fontSize: any;
+  color: any;
 }) => StyleProp<ViewStyle>;
 
 const TodoItem = () => {
-  const [status, setStatus] = React.useState<"open" | "closed">("closed");
-
-  const measurementValue = useSharedValue<MeasuredDimensions | null>(null);
   const transformY = useSharedValue(0);
   const [startNode, setStartNode] = useState<Node[]>([]);
   const [endNode, setEndNode] = useState<Node[]>([]);
   const [nodeArr, setNodeArr] = useState<any[]>([]);
-
-  let testStartNode;
-  let testEndNode;
 
   const isEnabled = useSharedValue(false);
 
@@ -114,8 +122,6 @@ const TodoItem = () => {
 
   const height = useSharedValue(150);
 
-  const test = SharedTransition.custom;
-
   const customStyle: CustomStyleFunc = (value) => {
     "worklet";
 
@@ -123,6 +129,7 @@ const TodoItem = () => {
     // Value type animation and return in view props
     return {
       transform: [{ translateX: withTiming(value.transform.translateX) }],
+      backgroundColor: withTiming(value.backgroundColor),
     };
   };
 
@@ -230,7 +237,13 @@ const ClosedContent = ({ setStartNode }) => {
           }}
           shareId={"text"}
         >
-          <Text style={{ fontSize: 16, fontWeight: "bold", color: "black" }}>
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: "bold",
+              color: "black",
+            }}
+          >
             Task 1
           </Text>
 
@@ -269,7 +282,6 @@ const ClosedContent = ({ setStartNode }) => {
               width: 100,
               height: 50,
               resizeMode: "stretch",
-
               transform: [{ translateX: 45 }],
             }}
           />

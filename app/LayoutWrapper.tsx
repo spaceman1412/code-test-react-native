@@ -228,9 +228,6 @@ const OneNode = ({
       transform: { ...value.transform, ...transform },
     };
 
-    //TODO: Need handle with user not custom style
-    //TODO: Handle undefined case
-
     const valueStyle = customStyle ? customStyle(value) : [];
 
     const tempStyle = Object.entries(valueStyle);
@@ -519,8 +516,10 @@ const OneNode = ({
           }
         }
       };
-
+      //@ts-ignore
       handleProps(startNode?.element?.props, "start");
+      //@ts-ignore
+
       handleProps(endNode?.element?.props, "end");
     }
   }, [startNode, passRef, endNode]);
@@ -529,9 +528,12 @@ const OneNode = ({
     (props: ViewProps, ref: React.LegacyRef<View>) => {
       const startNodeWithRef =
         startNode &&
+        //@ts-ignore
+
         cloneElement(startNode.element, {
           ref: ref,
-          style: [startNode.element.props.style, props.style],
+          //@ts-ignore
+          style: [startNode?.element?.props.style, props.style],
         });
 
       return startNodeWithRef;
