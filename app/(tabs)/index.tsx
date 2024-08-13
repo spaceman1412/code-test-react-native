@@ -11,7 +11,6 @@ import {
   ViewProps,
   StyleProp,
   ViewStyle,
-  PressableStateCallbackType,
 } from "react-native";
 import Animated, {
   AnimatedStyle,
@@ -22,8 +21,11 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-import { Node, TestNodeWrapper } from "../TestNodeWrapper";
-import { LayoutWrapper } from "../LayoutWrapper";
+import {
+  TestNodeWrapper,
+  Node,
+  LayoutWrapper,
+} from "react-native-shared-element-component";
 
 export default function HomeScreen() {
   return (

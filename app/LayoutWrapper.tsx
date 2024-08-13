@@ -25,16 +25,6 @@ import Animated, {
 } from "react-native-reanimated";
 import { Node } from "./TestNodeWrapper";
 import { CustomStyleFunc } from "./(tabs)";
-
-// Check for first mount
-export const useIsMount = () => {
-  const isMountRef = useRef(true);
-  useEffect(() => {
-    isMountRef.current = false;
-  }, []);
-  return isMountRef.current;
-};
-
 type NodeTransform = {
   transform?: any;
   backgroundColor?: string;
